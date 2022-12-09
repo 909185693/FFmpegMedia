@@ -1459,7 +1459,7 @@ int FFFmpegMediaTracks::stream_component_open(int stream_index)
     }
 
     /**硬件编码处理开始 */
-    if (avctx->codec_type == AVMEDIA_TYPE_VIDEO && Settings->UseHardwareAcceleratedCodecs) { //如果启用了硬件编码且是视频流
+    if (avctx->codec_type == AVMEDIA_TYPE_VIDEO && Settings->bUseHardwareAcceleratedCodecs) { //如果启用了硬件编码且是视频流
         avCodecHWConfig = this->FindBestDeviceType(codec);
         if (avCodecHWConfig != nullptr) {
             // 硬件解码器初始化
@@ -1499,7 +1499,7 @@ int FFFmpegMediaTracks::stream_component_open(int stream_index)
     }
     avctx->lowres = stream_lowres;
 
-    if (Settings->AllowFast)//非标准化规范的多媒体兼容优化
+    if (Settings->bAllowFast)//非标准化规范的多媒体兼容优化
         avctx->flags2 |= AV_CODEC_FLAG2_FAST;
 
     if (!av_dict_get(opts, "threads", NULL, 0))

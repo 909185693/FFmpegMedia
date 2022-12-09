@@ -8,8 +8,9 @@ public class FFmpegMedia : ModuleRules
 	{
 		bEnableExceptions = true;
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
-		
-		PublicIncludePaths.AddRange(
+        OptimizeCode = CodeOptimization.InShippingBuildsOnly;
+
+        PublicIncludePaths.AddRange(
 			new string[] {
 				// ... add public include paths required here ...
 			}

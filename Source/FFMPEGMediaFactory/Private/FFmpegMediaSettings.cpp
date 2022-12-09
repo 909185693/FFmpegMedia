@@ -4,12 +4,12 @@
 #include "FFmpegMediaSettings.h"
 
 UFFmpegMediaSettings::UFFmpegMediaSettings()
-	:  UseHardwareAcceleratedCodecs(false)
+	:  bUseHardwareAcceleratedCodecs(false)
 	//,SyncType(ESynchronizationType::AudioMaster)
 	//, UseInfiniteBuffer(false)
 	//, FrameDropStrategy(FrameDropStrategy::Default)
 	//, AudioVolume(100)
-	, AllowFast(false)
+	, bAllowFast(false)
 	//, DecoderReorderPtsStrategy(DecoderReorderPtsStrategy::Auto)
 	//, DisableAudio(false)
 	//, DisableVideo(false)

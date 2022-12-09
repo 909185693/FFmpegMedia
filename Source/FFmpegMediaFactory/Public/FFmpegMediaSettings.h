@@ -9,24 +9,24 @@
 
 UENUM()
 enum class ESynchronizationType : uint8 {
-	AudioMaster = 0, //音频
-	VideoMaster,      //视频
-	ExternalClock  //外部时钟
+	AudioMaster = 0,	//音频
+	VideoMaster,		//视频
+	ExternalClock		//外部时钟
 };
 
 
 UENUM()
-enum class FrameDropStrategy : int8 {
-	Default = -1, //默认值，
+enum class EFrameDropStrategy : int8 {
+	Default = -1,	//默认值，
 	Allow = 1,      //允许丢帧
-	NotAllow = 0  //不允许丢帧
+	NotAllow = 0	//不允许丢帧
 };
 
 UENUM()
-enum class DecoderReorderPtsStrategy : int8 {
-	Auto = -1, //自动(默认值)，
-	On = 1,    //开启
-	Off = 0  //关闭
+enum class EDecoderReorderPtsStrategy : int8 {
+	Auto = -1,	//自动(默认值)，
+	On = 1,		//开启
+	Off = 0		//关闭
 };
 
 
@@ -57,12 +57,10 @@ public:
 public:
 
 	UPROPERTY(config, EditAnywhere, Category = Media, meta = (ToolTip = "是否使用硬件解码器"))
-	bool UseHardwareAcceleratedCodecs;
+	bool bUseHardwareAcceleratedCodecs;
 
 	UPROPERTY(config, EditAnywhere, Category = Media, meta = (ToolTip = "非标准化规范的多媒体兼容优化"))
-	bool AllowFast;
-
-
+	bool bAllowFast;
 
 	//UPROPERTY(config, EditAnywhere, Category = Media)
 	//ESynchronizationType SyncType; //同步类型
