@@ -87,14 +87,14 @@ public:
 	    FString BaseDir = IPluginManager::Get().FindPlugin("FFmpegMedia")->GetBaseDir();
 #if PLATFORM_WINDOWS
 		//开始d动态加载ffmpeg dll文件
-		FString avcodeLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/avcodec-59.dll"));
-		FString avdeviceLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/avdevice-59.dll"));
-		FString avfilterLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/avfilter-8.dll"));
-		FString avformatLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/avformat-59.dll"));
-		FString avutilLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/avutil-57.dll"));
-		FString postprocLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/postproc-56.dll"));
-		FString swresampleLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/swresample-4.dll"));
-		FString swscaleLibraryPath = FPaths::Combine(*BaseDir, TEXT("Binaries/ThirdParty/FFmpegMediaLibrary/Win64/swscale-6.dll"));
+		FString avcodeLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/avcodec-59.dll"));
+		FString avdeviceLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/avdevice-59.dll"));
+		FString avfilterLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/avfilter-8.dll"));
+		FString avformatLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/avformat-59.dll"));
+		FString avutilLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/avutil-57.dll"));
+		FString postprocLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/postproc-56.dll"));
+		FString swresampleLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/swresample-4.dll"));
+		FString swscaleLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/swscale-6.dll"));
 
 		 AVUtilLibrary = !avutilLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avutilLibraryPath) : nullptr;
 		 SWResampleLibrary = !swresampleLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*swresampleLibraryPath) : nullptr;
