@@ -34,7 +34,7 @@ public class FFmpegMedia : ModuleRules
         PublicDependencyModuleNames.AddRange(
             new string[]
             {
-				"FFmpegMediaLibrary",
+				"FFmpeg",
 				// ... add other public dependencies that you statically link with here ...
 			}
             );
