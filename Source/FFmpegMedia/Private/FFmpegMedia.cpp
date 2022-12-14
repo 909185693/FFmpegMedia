@@ -9,7 +9,7 @@
 #include "FFmpegMediaPlayer.h"
 
 extern  "C" {
-	#include "libavformat/avformat.h"
+#include "libavformat/avformat.h"
 }
 
 DEFINE_LOG_CATEGORY(LogFFmpegMedia);
@@ -25,7 +25,8 @@ public:
 	/**
 	 * 创建播放器
 	 */
-	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) {
+	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink)
+	{
 		if (!Initialized)
 		{
 			UE_LOG(LogFFmpegMedia, Error, TEXT("FFmpegMediaModule not load, create FFmpegMediaPlayer failed"));
@@ -40,7 +41,8 @@ public:
 	/**
 	 * 获取平台支持的文件扩展名
 	 */
-	virtual TArray<FString> GetSupportedFileExtensions() {
+	virtual TArray<FString> GetSupportedFileExtensions()
+	{
 		TMap<FString, FString> extensionMap;
 		void* oformat_opaque = NULL;
 		const AVOutputFormat* oformat = av_muxer_iterate(&oformat_opaque);
@@ -70,7 +72,8 @@ public:
 	/**
 	 * 获取平台支持的URL
 	 */
-	virtual TArray<FString> GetSupportedUriSchemes() {
+	virtual TArray<FString> GetSupportedUriSchemes()
+	{
 		void* opaque = NULL;
 		//0: 输入协议, 1: 输出协议， 这里获取输入协议
 		const char* name = avio_enum_protocols(&opaque, 0);
@@ -83,8 +86,9 @@ public:
 	}
 
 	/** IModuleInterface implementation */
-	virtual void StartupModule() override {
-	    FString BaseDir = IPluginManager::Get().FindPlugin("FFmpegMedia")->GetBaseDir();
+	virtual void StartupModule() override
+	{
+		FString BaseDir = IPluginManager::Get().FindPlugin("FFmpegMedia")->GetBaseDir();
 #if PLATFORM_WINDOWS
 		//开始d动态加载ffmpeg dll文件
 		FString avcodeLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/avcodec-59.dll"));
@@ -96,18 +100,18 @@ public:
 		FString swresampleLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/swresample-4.dll"));
 		FString swscaleLibraryPath = FPaths::Combine(*BaseDir, TEXT("Source/ThirdParty/FFmpeg/bin/Win64/swscale-6.dll"));
 
-		 AVUtilLibrary = !avutilLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avutilLibraryPath) : nullptr;
-		 SWResampleLibrary = !swresampleLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*swresampleLibraryPath) : nullptr;
-		 PostProcLibrary = !postprocLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*postprocLibraryPath) : nullptr;
-		 SWScaleLibrary = !swscaleLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*swscaleLibraryPath) : nullptr;
-		 AVCodecLibrary = !avcodeLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avcodeLibraryPath) : nullptr;
-		 AVFormatLibrary = !avformatLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avformatLibraryPath) : nullptr;
-		 AVFilterLibrary = !avfilterLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avfilterLibraryPath) : nullptr;
-		 AVDeviceLibrary = !avdeviceLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avdeviceLibraryPath) : nullptr;
+		AVUtilLibrary = !avutilLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avutilLibraryPath) : nullptr;
+		SWResampleLibrary = !swresampleLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*swresampleLibraryPath) : nullptr;
+		PostProcLibrary = !postprocLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*postprocLibraryPath) : nullptr;
+		SWScaleLibrary = !swscaleLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*swscaleLibraryPath) : nullptr;
+		AVCodecLibrary = !avcodeLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avcodeLibraryPath) : nullptr;
+		AVFormatLibrary = !avformatLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avformatLibraryPath) : nullptr;
+		AVFilterLibrary = !avfilterLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avfilterLibraryPath) : nullptr;
+		AVDeviceLibrary = !avdeviceLibraryPath.IsEmpty() ? FPlatformProcess::GetDllHandle(*avdeviceLibraryPath) : nullptr;
 #endif
 		//av_register_all(); //ffmpeg注册组件，ffmpeg5中已经不存在
 		avformat_network_init(); //初始化ffmpeg网络库
-		
+
 		UE_LOG(LogFFmpegMedia, Display, TEXT("FFmpeg AVCodec version: %d.%d.%d"), LIBAVFORMAT_VERSION_MAJOR, LIBAVFORMAT_VERSION_MINOR, LIBAVFORMAT_VERSION_MICRO);
 		UE_LOG(LogFFmpegMedia, Display, TEXT("FFmpeg license: %s"), UTF8_TO_TCHAR(avformat_license()));
 		av_log_set_level(AV_LOG_INFO);
@@ -115,7 +119,9 @@ public:
 		av_log_set_callback(&log_callback);
 		Initialized = true;
 	}
-	virtual void ShutdownModule() override {
+	
+	virtual void ShutdownModule() override
+	{
 		if (!Initialized)
 		{
 			return;
@@ -144,7 +150,7 @@ public:
 #else
 		vsnprintf(buffer, 2048, format, arglist);
 #endif
-		FString str = TEXT("FFMPEG - ");
+		FString str = TEXT("FFmpeg - ");
 		str += buffer;
 
 		switch (level) {
@@ -189,5 +195,5 @@ private:
 };
 
 #undef LOCTEXT_NAMESPACE
-	
+
 IMPLEMENT_MODULE(FFFmpegMediaModule, FFmpegMedia)

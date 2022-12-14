@@ -520,7 +520,7 @@ int FFFmpegMediaTracks::DisplayThread()
         //    continue;
         //}
 
-        UE_LOG(LogFFmpegMedia, Log, TEXT("Tracks: %p:  DisplayThread remaining_time %f"), this, remaining_time);
+        //UE_LOG(LogFFmpegMedia, Log, TEXT("Tracks: %p:  DisplayThread remaining_time %f"), this, remaining_time);
         if (remaining_time > 0.0)
             av_usleep((int64_t)(remaining_time * 1000000.0)); //睡眠一段时间，防止无意义的频繁调用
         remaining_time = REFRESH_RATE; //默认屏幕刷新率控制，REFRESH_RATE = 10ms
@@ -2449,8 +2449,8 @@ int FFFmpegMediaTracks::upload_texture(FFmpegFrame* vp, AVFrame* frame)
                 time, //ps: 当只有视频时，视频的该值会当做播放时间，故会产生小于总时长1秒的情况，此处将时长与pts相加 duration
                 duration))
             {
-                //将样本对象放入样本队列中
-                UE_LOG(LogFFmpegMedia, Verbose, TEXT("Tracks%p: VideoSampleQueue Enqueue %s %f"), this, *TextureSample.Get().GetTime().Time.ToString(), vp->GetDuration());
+                // 将样本对象放入样本队列中
+                // UE_LOG(LogFFmpegMedia, Verbose, TEXT("Tracks%p: VideoSampleQueue Enqueue %s %f"), this, *TextureSample.Get().GetTime().Time.ToString(), vp->GetDuration());
                 this->MediaSamples->AddVideo(TextureSample);
             }
         }
