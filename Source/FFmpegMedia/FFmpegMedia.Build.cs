@@ -62,20 +62,5 @@ public class FFmpegMedia : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-
-        if (Target.Platform == UnrealTargetPlatform.Win64)
-        {
-            // Ensure that the DLL is staged along with the executable
-            string[] dlls = { "avcodec-59.dll", "avdevice-59.dll", "avfilter-8.dll", "avformat-59.dll", "avutil-57.dll", "swresample-4.dll", "swscale-6.dll", "postproc-56.dll" };
-            foreach (string dll in dlls)
-            {
-                string DllPath = Path.Combine(PluginDirectory, "Source", "ThirdParty", "FFmpeg", "bin", "Win64", dll);
-
-                System.Console.WriteLine("... Dll Path -> " + DllPath);
-
-                PublicDelayLoadDLLs.Add(dll);
-                RuntimeDependencies.Add(DllPath);
-            }
-        }
     }
 }

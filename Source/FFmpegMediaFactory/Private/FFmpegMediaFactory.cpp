@@ -35,7 +35,8 @@ public:
 	 * 判断视频地址是否可以播放
 	 * 注意该方法是需要手动调用的，比如在蓝图中播放视频时，调用该方法检测给定的视频地址是否可以播放
 	 */
-	virtual bool CanPlayUrl(const FString& Url, const IMediaOptions* Options, TArray<FText>* OutWarnings, TArray<FText>* OutErrors) const override {
+	virtual bool CanPlayUrl(const FString& Url, const IMediaOptions* Options, TArray<FText>* OutWarnings, TArray<FText>* OutErrors) const override
+	{
 		UE_LOG(LogFFmpegMediaFactory, Log, TEXT("FFmpegMediaFactory: CanPlayUrl %s"), *Url);
 		FString Scheme;
 		FString Location;
@@ -92,7 +93,8 @@ public:
 	/**
 	 * 创建一个播放器实例
 	 */
-	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) override {
+	virtual TSharedPtr<IMediaPlayer, ESPMode::ThreadSafe> CreatePlayer(IMediaEventSink& EventSink) override
+	{
 		UE_LOG(LogFFmpegMediaFactory, Log, TEXT("FFmpegMediaFactory: CreatePlayer..."));
 
 		auto FFmpegMediaModule = FModuleManager::LoadModulePtr<IFFmpegMediaModule>("FFmpegMedia");
@@ -102,14 +104,16 @@ public:
 	/** 
 	 * 获取播放器显示名称
 	 */
-	virtual FText GetDisplayName() const override {
+	virtual FText GetDisplayName() const override
+	{
 		return LOCTEXT("MediaPlayerDisplayName", "FFmpeg");
 	}
 
 	/**
 	 * 获取播放器名称
 	 */
-	virtual FName GetPlayerName() const override {
+	virtual FName GetPlayerName() const override
+	{
 		static FName PlayerName(TEXT("FFmpegMedia"));
 		return PlayerName;
 	}
@@ -117,7 +121,8 @@ public:
 	/** 
 	 * 获取播放器GUID
 	 */
-	virtual FGuid GetPlayerPluginGUID() const override {
+	virtual FGuid GetPlayerPluginGUID() const override
+	{
 		//todo: 重新生成一个
 		static FGuid PlayerPluginGUID(0x688ae1e8, 0x9b647f80, 0x9ce98ced, 0x9daa4ca6);
 		return PlayerPluginGUID;
@@ -126,15 +131,16 @@ public:
 	/**
 	 * 获取播放器支持的平台
 	 */
-	virtual const TArray<FString>& GetSupportedPlatforms() const override {
+	virtual const TArray<FString>& GetSupportedPlatforms() const override
+	{
 		return SupportedPlatforms;
 	}
 
 	/**
 	 * 获取播放器支持的特性
 	 */
-	virtual bool SupportsFeature(EMediaFeature Feature) const override {
-
+	virtual bool SupportsFeature(EMediaFeature Feature) const override
+	{
 		return ((Feature == EMediaFeature::AudioSamples) ||
 			(Feature == EMediaFeature::AudioTracks) ||
 			(Feature == EMediaFeature::CaptionTracks) ||
@@ -147,8 +153,8 @@ public:
 
 
 	/** IModuleInterface implementation */
-	virtual void StartupModule() override {
-
+	virtual void StartupModule() override
+	{
 		//根据模块名加载模块
 		auto FFmpegMediaModule = FModuleManager::LoadModulePtr<IFFmpegMediaModule>("FFmpegMedia");
 
@@ -158,9 +164,10 @@ public:
 		SupportedUriSchemes.Append(FFmpegMediaModule->GetSupportedUriSchemes());
 		// supported platforms
 		SupportedPlatforms.Add(TEXT("Windows"));
-		//todo: 支持linux
-		//SupportedPlatforms.Add(TEXT("Mac"));
-		//SupportedPlatforms.Add(TEXT("Android"));
+		SupportedPlatforms.Add(TEXT("Mac"));
+		SupportedPlatforms.Add(TEXT("Linux"));
+		SupportedPlatforms.Add(TEXT("iOS"));
+		SupportedPlatforms.Add(TEXT("Android"));
 
 		auto MediaModule = FModuleManager::LoadModulePtr<IMediaModule>("Media");
 		if (MediaModule != nullptr)
@@ -186,9 +193,10 @@ public:
 			);
 		}
 #endif //WITH_EDITOR
-
 	}
-	virtual void ShutdownModule() override {
+
+	virtual void ShutdownModule() override
+	{
 		// unregister player factory
 		auto MediaModule = FModuleManager::GetModulePtr<IMediaModule>("Media");
 

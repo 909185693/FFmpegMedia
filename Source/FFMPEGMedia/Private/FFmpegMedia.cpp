@@ -79,9 +79,18 @@ public:
 		const char* name = avio_enum_protocols(&opaque, 0);
 		TArray<FString> protocols;
 		while (name) {
-			protocols.Add(name);
+			protocols.Add(UTF8_TO_TCHAR(name));
 			name = avio_enum_protocols(&opaque, 0);
 		}
+		protocols.AddUnique(TEXT("rtsp"));
+
+		FString LogText = "GetSupportedUriSchemes:";
+		for (FString Name : protocols)
+		{
+			LogText = FString::Printf(TEXT("%s %s |"), *LogText, *Name);
+		}
+		UE_LOG(LogFFmpegMedia, Log, TEXT("%s"), *LogText);
+
 		return protocols;
 	}
 
