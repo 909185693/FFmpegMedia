@@ -6,6 +6,7 @@
 #include "FFmpegPacketQueue.h"
 #include "FFmpegFrameQueue.h"
 #include "FFmpegCond.h"
+#include <functional>
 extern "C" {
     #include <libavcodec/avcodec.h>
 }

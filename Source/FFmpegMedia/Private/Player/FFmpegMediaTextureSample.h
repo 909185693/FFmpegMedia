@@ -83,6 +83,7 @@ public:
 		Stride = InStride;
 		//设置显示时间(pts)
 		Time = InTime;
+
 		return true;
 	}
 
@@ -128,7 +129,7 @@ public:
 #if WITH_ENGINE
 	virtual FRHITexture* GetTexture() const override
 	{
-		return nullptr;
+		return Texture.GetReference();
 	}
 #endif //WITH_ENGINE
 
@@ -172,6 +173,13 @@ private:
 
 	/** Presentation for which the sample was generated. 样本显示时间(pts)*/
 	FMediaTimeStamp Time;
+
+#if WITH_ENGINE
+
+	/** Texture resource. */
+	TRefCountPtr<FRHITexture2D> Texture;
+
+#endif //WITH_ENGINE
 };
 
 

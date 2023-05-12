@@ -34,7 +34,6 @@ public:
 		}
 
 		UE_LOG(LogFFmpegMedia, Log, TEXT("create FFmpegMediaPlayer success"));
-		UE_LOG(LogFFmpegMedia, Log, TEXT("create FFmpegMediaPlayer success"));
 		return MakeShareable(new FFmpegMediaPlayer(EventSink));
 	}
 

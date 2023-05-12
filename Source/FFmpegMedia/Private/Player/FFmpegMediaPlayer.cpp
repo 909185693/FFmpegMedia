@@ -33,15 +33,16 @@ FFmpegMediaPlayer::~FFmpegMediaPlayer()
 bool FFmpegMediaPlayer::InitializePlayer(const TSharedPtr<FArchive, ESPMode::ThreadSafe>& Archive, const FString& Url, bool Precache, const FMediaPlayerOptions* PlayerOptions)
 {
     UE_LOG(LogFFmpegMedia, Verbose, TEXT("Player %p: Initializing %s (archive = %s, precache = %s)"), this, *Url, Archive.IsValid() ? TEXT("yes") : TEXT("no"), Precache ? TEXT("yes") : TEXT("no"));
+    UE_LOG(LogFFmpegMedia, Display, TEXT("AVFormat configuration: %s"), UTF8_TO_TCHAR(avformat_configuration()));
 
-    //设置当前媒体地址
+    // 设置当前媒体地址
     MediaUrl = Url;
 
-    //根据是否预加载创建异步执行器
+    // 根据是否预加载创建异步执行器
     const EAsyncExecution Execution = Precache ? EAsyncExecution::Thread : EAsyncExecution::ThreadPool;
 
-    //创建异步任务并执行，
-    TFunction <void()>  Task = [Archive, Url, Precache, PlayerOptions, TracksPtr = TWeakPtr<FFFmpegMediaTracks, ESPMode::ThreadSafe>(Tracks), ThisPtr = this]()
+    // 创建异步任务并执行
+    TFunction<void()> Task = [Archive, Url, Precache, PlayerOptions, TracksPtr = TWeakPtr<FFFmpegMediaTracks, ESPMode::ThreadSafe>(Tracks), ThisPtr = this]()
     {
         //获取轨道对象Tracks的弱引用
         TSharedPtr<FFFmpegMediaTracks, ESPMode::ThreadSafe> PinnedTracks = TracksPtr.Pin();
@@ -113,7 +114,7 @@ AVFormatContext* FFmpegMediaPlayer::ReadContext(const TSharedPtr<FArchive, ESPMo
     if (err < 0) {
         char errbuf[1024] = {};
         av_strerror(err, errbuf, 1024);
-        UE_LOG(LogFFmpegMedia, Error, TEXT("Player %p: Couldn't Open File %d(%s)"), this, err, errbuf);
+        UE_LOG(LogFFmpegMedia, Error, TEXT("Player %p: Couldn't Open File %d(%s) - %s"), this, err, UTF8_TO_TCHAR(errbuf), *Url);
         ret = -1;
         goto fail;
     }
@@ -122,7 +123,7 @@ AVFormatContext* FFmpegMediaPlayer::ReadContext(const TSharedPtr<FArchive, ESPMo
 
     t = av_dict_get(format_opts, "", NULL, AV_DICT_IGNORE_SUFFIX);
     if (t) {
-        UE_LOG(LogFFmpegMedia, Error, TEXT("Player %p: format_opts %s not found."), this, t->key);
+        UE_LOG(LogFFmpegMedia, Error, TEXT("Player %p: format_opts %s not found."), this, UTF8_TO_TCHAR(t->key));
         ret = AVERROR_OPTION_NOT_FOUND;
         goto fail;
     }
@@ -145,6 +146,7 @@ AVFormatContext* FFmpegMediaPlayer::ReadContext(const TSharedPtr<FArchive, ESPMo
         ic->pb->eof_reached = 0; // FIXME hack, ffplay maybe should not use avio_feof() to test for the end
 
     return ic;
+
 fail:
     if (!ic) {
         avformat_close_input(&ic);
@@ -154,6 +156,7 @@ fail:
         //发送媒体打开失败事件
         EventSink.ReceiveMediaEvent(EMediaEvent::MediaOpenFailed);
     }
+
     return NULL;
 }
 
@@ -262,7 +265,7 @@ bool FFmpegMediaPlayer::Open(const TSharedRef<FArchive, ESPMode::ThreadSafe>& Ar
         return false;
     }
 
-    UE_LOG(LogFFmpegMedia, Log, TEXT("Player %p: Open Media Source[Archive]: %s"), this);
+    UE_LOG(LogFFmpegMedia, Log, TEXT("Player %p: Open Media Source[Archive]: %s"), this, *OriginalUrl);
     return InitializePlayer(Archive, OriginalUrl, false, nullptr);
 }
 
@@ -411,10 +414,3 @@ IMediaView& FFmpegMediaPlayer::GetView()
 {
     return *this;
 }
-
-
-
-
-
-
-

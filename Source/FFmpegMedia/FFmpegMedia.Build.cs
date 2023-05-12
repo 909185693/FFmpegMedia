@@ -18,7 +18,7 @@ public class FFmpegMedia : ModuleRules
 
 		PrivateIncludePathModuleNames.AddRange(
 			new string[] {
-					"Media",
+				"Media",
 			});
 
 		PrivateIncludePaths.AddRange(
@@ -27,8 +27,7 @@ public class FFmpegMedia : ModuleRules
 				"FFmpegMedia/Private",
 				"FFmpegMedia/Private/Player",
 				"FFmpegMedia/Private/FFmpeg",
-			}
-			);
+			});
 
 
         PublicDependencyModuleNames.AddRange(
@@ -36,8 +35,7 @@ public class FFmpegMedia : ModuleRules
             {
 				"FFmpeg",
 				// ... add other public dependencies that you statically link with here ...
-			}
-            );
+			});
 
 
         PrivateDependencyModuleNames.AddRange(
@@ -46,13 +44,13 @@ public class FFmpegMedia : ModuleRules
 				"Core",
 				"CoreUObject",
 				"Engine",
+				"RHI",
 				"MediaUtils",
 				"RenderCore",
 				"Projects",
 				"FFmpegMediaFactory"
 				// ... add private dependencies that you statically link with here ...	
-			}
-			);
+			});
 		
 		
 		DynamicallyLoadedModuleNames.AddRange(
@@ -60,7 +58,6 @@ public class FFmpegMedia : ModuleRules
 			{
 				"Media",
 				// ... add any modules that your module loads dynamically here ...
-			}
-			);
+			});
     }
 }

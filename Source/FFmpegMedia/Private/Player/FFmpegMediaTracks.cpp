@@ -12,6 +12,8 @@
 #include "FFmpegMediaTextureSample.h"
 #include "FFmpegMediaSettings.h"
 #include "MediaSamples.h"
+#include "RHI.h"
+#include "RHIUtilities.h"
 
  /* Minimum SDL audio buffer size, in samples. */
 #define AUDIO_MIN_BUFFER_SIZE 512
@@ -57,7 +59,7 @@ FFFmpegMediaTracks::FFFmpegMediaTracks()
    
     this->CurrentRate = 0.0f; //当前播放速率
 
-    this->ShouldLoop = false; //循环播放(注意该变量不需要重置)
+    this->bShouldLoop = false; //循环播放(注意该变量不需要重置)
 
     this->displayRunning = false;
     this->displayThread = nullptr;
@@ -132,7 +134,7 @@ FFFmpegMediaTracks::FFFmpegMediaTracks()
 
      this->last_vis_time = 0.0;
      this->show_pic = false; //显示图片
-     MediaSamples.Reset(new FMediaSamples);
+     MediaSamples = MakeShared<FMediaSamples, ESPMode::ThreadSafe>();
 }
 
 /** 析构函数 回收资源 */
@@ -1154,7 +1156,7 @@ FTimespan FFFmpegMediaTracks::GetTime() const
 
 bool FFFmpegMediaTracks::IsLooping() const
 {
-    return this->ShouldLoop;
+    return this->bShouldLoop;
 }
 
 bool FFFmpegMediaTracks::Seek(const FTimespan& Time)
@@ -1198,7 +1200,7 @@ bool FFFmpegMediaTracks::Seek(const FTimespan& Time)
 
 bool FFFmpegMediaTracks::SetLooping(bool Looping)
 {
-    this->ShouldLoop = Looping;
+    this->bShouldLoop = Looping;
     return true;
 }
 
@@ -1341,7 +1343,7 @@ int FFFmpegMediaTracks::read_thread()
                 }
             }
 
-            if (this->ShouldLoop) { //循环播放，直接seek
+            if (this->bShouldLoop) { //循环播放，直接seek
                 DeferredEvents.Enqueue(EMediaEvent::PlaybackEndReached);
                 this->stream_seek(start_time != AV_NOPTS_VALUE ? start_time : 0, 0, 0);
             }
@@ -1402,7 +1404,7 @@ int FFFmpegMediaTracks::read_thread()
 
     ret = 0;
     av_packet_free(&pkt);
-    UE_LOG(LogFFmpegMedia, Log, TEXT("Tracks: %p:  ReadThread exit"), this);
+    UE_LOG(LogFFmpegMedia, Log, TEXT("Tracks: %p: ReadThread exit"), this);
     return ret;
 }
 
@@ -1543,10 +1545,10 @@ int FFFmpegMediaTracks::stream_component_open(int stream_index)
             av_dict_free(&opts);
             return ret;
         }
-      /*  if ((ret = auddec->Start([this](void* data) {return audio_thread();}, NULL)) < 0) {
-            av_dict_free(&opts);
-            return ret;
-        }*/
+        //if ((ret = auddec->Start([this](void* data) {return audio_thread();}, NULL)) < 0) {
+        //    av_dict_free(&opts);
+        //    return ret;
+        //}
         UE_LOG(LogFFmpegMedia, Log, TEXT("Tracks: %p: start a audio_thread"), this);
         break;
     case AVMEDIA_TYPE_VIDEO:
@@ -1651,7 +1653,7 @@ void FFFmpegMediaTracks::stream_component_close(int stream_index)
     }
 }
 
-/**音频解码线程 */
+/** 音频解码线程 */
 int FFFmpegMediaTracks::audio_thread()
 {
     AVFrame* frame = av_frame_alloc(); //分配帧对象
@@ -1685,7 +1687,7 @@ int FFFmpegMediaTracks::audio_thread()
             af->serial = this->auddec->pkt_serial;
             af->duration = av_q2d({ frame->nb_samples, frame->sample_rate });
 
-            //精准seek控制
+            // 精准seek控制
             if (this->accurate_audio_seek_flag) {
                 if (af->pts < this->accurate_seek_time) {
                     av_frame_move_ref(af->frame, frame);
@@ -1705,7 +1707,7 @@ int FFFmpegMediaTracks::audio_thread()
     return ret;
 }
 
-/**视频解码线程 */
+/** 视频解码线程 */
 int FFFmpegMediaTracks::video_thread()
 {
     AVFrame* frame = av_frame_alloc();
@@ -1759,7 +1761,7 @@ int FFFmpegMediaTracks::video_thread()
     return 0;
 }
 
-/**字幕解码线程 */
+/** 字幕解码线程 */
 int FFFmpegMediaTracks::subtitle_thread()
 {
     FFmpegFrame* sp;
@@ -2388,69 +2390,75 @@ int FFFmpegMediaTracks::upload_texture(FFmpegFrame* vp, AVFrame* frame)
         return -1;
     }
 
-    //目标图像格式, 将帧中的像素统一转化成该格式
-    AVPixelFormat targetPixelFormat = AV_PIX_FMT_RGBA;
+    // 目标图像格式, 将帧中的像素统一转化成该格式
+    AVPixelFormat targetPixelFormat = AV_PIX_FMT_BGRA;
     int ret = 0;
 
-    //生成转化上下文
+    // 生成转化上下文
     img_convert_ctx = sws_getCachedContext(
-        this->img_convert_ctx, //
-        frame->width,  //输入图像的宽度
-        frame->height, //输入图像的宽度
-        ConvertDeprecatedFormat((AVPixelFormat)frame->format), //输入图像的像素格式
-        //(AVPixelFormat)frame->format, //输入图像的像素格式
-        frame->width, //输出图像的宽度
-        frame->height, //输出图像的高度
-        AV_PIX_FMT_BGRA, //输出图像的像素格式
-        SWS_BICUBIC, //选择缩放算法(只有当输入输出图像大小不同时有效), 默认SWS_BICUBIC
-        NULL,//输入图像的滤波器信息, 若不需要传NULL
-        NULL, //输出图像的滤波器信息, 若不需要传NULL
-        NULL); //特定缩放算法需要的参数(? )，默认为NULL
+        this->img_convert_ctx,                                  // 输入图像上下文对象
+        frame->width,                                           // 输入图像的宽度
+        frame->height,                                          // 输入图像的宽度
+        ConvertDeprecatedFormat((AVPixelFormat)frame->format),  // 输入图像的像素格式
+        //(AVPixelFormat)frame->format,                         // 输入图像的像素格式
+        frame->width,                                           // 输出图像的宽度
+        frame->height,                                          // 输出图像的高度
+        targetPixelFormat,                                      // 输出图像的像素格式
+        SWS_BICUBIC,                                            // 选择缩放算法(只有当输入输出图像大小不同时有效), 默认SWS_BICUBIC
+        NULL,                                                   // 输入图像的滤波器信息, 若不需要传NULL
+        NULL,                                                   // 输出图像的滤波器信息, 若不需要传NULL
+        NULL);                                                  // 特定缩放算法需要的参数(? )，默认为NULL
 
     if (img_convert_ctx != NULL) {
 
         uint8_t* pixels[4] = { 0 };
-        int pitch[4] = { 0,0,0,0 };
-        int size = av_image_get_buffer_size(AV_PIX_FMT_RGBA, frame->width, frame->height, 1);
+        int pitch[4] = { 0, 0, 0, 0 };
+        int size = av_image_get_buffer_size(targetPixelFormat, frame->width, frame->height, 1);
 
         this->ImgaeCopyDataBuffer.Reset();
         this->ImgaeCopyDataBuffer.AddUninitialized(size);
 
-        av_image_fill_linesizes(pitch, AV_PIX_FMT_BGRA, frame->width); //填充每个颜色通道的行字节数
-        av_image_fill_pointers(pixels, AV_PIX_FMT_BGRA, frame->height, ImgaeCopyDataBuffer.GetData(), pitch);
+        for (int i = 0; i < size; i++)
+        {
+            ImgaeCopyDataBuffer[i] = 0x10;
+        }
 
-        //视频像素格式和分辨率的转换
+        av_image_fill_linesizes(pitch, targetPixelFormat, frame->width); //填充每个颜色通道的行字节数
+        av_image_fill_pointers(pixels, targetPixelFormat, frame->height, ImgaeCopyDataBuffer.GetData(), pitch);
+
+        // 视频像素格式和分辨率的转换
         sws_scale(
             img_convert_ctx,
-            (const uint8_t* const*)frame->data, //输入图像的每个颜色通道的数据指针
-            frame->linesize, //输入图像的每个颜色通道的跨度,也就是每个通道的行字节数
-            0, //起始位置
-            frame->height, //处理多少行   0-frame->height 表示一次性处理完整个图像
-            pixels, ///输出图像的每个颜色通道的数据指针
-            pitch); ///输入图像的每个颜色通道的行字节数
+            (const uint8_t* const*)frame->data, // 输入图像的每个颜色通道的数据指针
+            frame->linesize,                    // 输入图像的每个颜色通道的跨度,也就是每个通道的行字节数
+            0,                                  // 起始位置
+            frame->height,                      // 处理多少行   0-frame->height 表示一次性处理完整个图像
+            pixels,                             // 输出图像的每个颜色通道的数据指针
+            pitch);                             // 输入图像的每个颜色通道的行字节数
 
         {
             FScopeLock Lock(&CriticalSection);
-            //从纹理样本池中获取一个共享对象
-            const TSharedRef<FFFmpegMediaTextureSample, ESPMode::ThreadSafe> TextureSample
-                = VideoSamplePool->AcquireShared();
-            //根据帧初始化该对象
+            // 从纹理样本池中获取一个共享对象
+            const TSharedRef<FFFmpegMediaTextureSample, ESPMode::ThreadSafe> TextureSample = VideoSamplePool->AcquireShared();
+            // 根据帧初始化该对象
             FIntPoint Dim = { frame->width, frame->height };
             FTimespan time = FTimespan::FromSeconds(0);
             if (!isnan(vp->GetPts())) {
                 time = FTimespan::FromSeconds(vp->GetPts());
             }
+
             FTimespan duration = FTimespan::FromSeconds(vp->GetDuration());
             if (TextureSample->Initialize(
                 ImgaeCopyDataBuffer.GetData(),
                 ImgaeCopyDataBuffer.Num(),
                 Dim,
                 pitch[0],
-                time, //ps: 当只有视频时，视频的该值会当做播放时间，故会产生小于总时长1秒的情况，此处将时长与pts相加 duration
+                time, //ps: 当只有视频时，视频的该值会当做播放时间，故会产生小于总时长1秒的情况，此处将时长与pts相加duration
                 duration))
             {
                 // 将样本对象放入样本队列中
                 // UE_LOG(LogFFmpegMedia, Verbose, TEXT("Tracks%p: VideoSampleQueue Enqueue %s %f"), this, *TextureSample.Get().GetTime().Time.ToString(), vp->GetDuration());
+                
                 this->MediaSamples->AddVideo(TextureSample);
             }
         }
@@ -2503,7 +2511,7 @@ const AVCodecHWConfig* FFFmpegMediaTracks::FindBestDeviceType(const AVCodec* dec
         }
     }
 
-    if (AVCodecHWConfigMaps.IsEmpty()) { //如果没有找到加速器配置，直接返回
+    if (AVCodecHWConfigMaps.Num() <= 0) { //如果没有找到加速器配置，直接返回
         return useConfig;
     }
     

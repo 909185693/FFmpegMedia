@@ -63,6 +63,7 @@ public:
 	virtual bool FlushOnSeekCompleted() const override;
 	/** 根据功能标识判断播放器功能是否支持 */
 	virtual bool GetPlayerFeatureFlag(EFeatureFlag flag) const override;
+
 protected:
 	/**
 	 * Initialize the native FFmpegMediaPlayer instance.

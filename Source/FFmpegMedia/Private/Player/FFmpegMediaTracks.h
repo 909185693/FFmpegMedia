@@ -252,7 +252,7 @@ public:
 	/** Seek操作(重绕操作属于Seek操作)*/
 	virtual bool Seek(const FTimespan& Time) override;
 	/**设置是否循环播放*/
-	virtual bool SetLooping(bool Looping) override;
+	virtual bool SetLooping(bool bLooping) override;
 	/**设置播放器速率 */
 	virtual bool SetRate(float Rate) override;
 //ffmpeg方法
@@ -344,7 +344,7 @@ private:
 
 	double CurrentRate;//当前播放速率
 
-	bool ShouldLoop;//循环播放
+	bool bShouldLoop;//循环播放
 
 	//视频是否播放中
 	bool             displayRunning;
@@ -370,7 +370,8 @@ private:
 	int currentOpenStreamNumber; //当前打开视频流数目，很重要，因为与ffplay中不同，UE中open stream和read是在两个线程中，需要保证所有流都开启之后，再读取
 	int streamTotalNumber; //流总数 
 	double LastFetchVideoTime = 0; //最后视频包时间
-	TUniquePtr<FMediaSamples> MediaSamples;
+	TSharedPtr<FMediaSamples, ESPMode::ThreadSafe> MediaSamples;
+
 //ffmpeg变量
 private:
 	AVFormatContext* ic; //上下文
@@ -416,7 +417,6 @@ private:
 	int frame_drops_late; //统计视频播放时丢弃的帧数量
 	double last_vis_time;
 	bool show_pic; //显示图片
-
 
 	//seek 相关参数
 	//int64_t start_time = AV_NOPTS_VALUE;

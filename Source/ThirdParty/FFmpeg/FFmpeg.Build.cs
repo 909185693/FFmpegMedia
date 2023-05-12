@@ -1,5 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
+using System;
 using System.IO;
 using UnrealBuildTool;
 
@@ -62,19 +63,19 @@ public class FFmpeg : ModuleRules
 		else if (Target.Platform == UnrealTargetPlatform.Android)
         {
             bIsLibrarySupported = true;
-            
+			            
             var abiNames = new[] { "armeabi-v7a", "arm64-v8a", "x86", "x86_64" };
             foreach (string abi in abiNames)
             {
-                // Ensure that the DLL is staged along with the executable
-                string[] dlls = { "libavcodec.so", "libavdevice.so", "libavfilter.so", "libavformat.so", "libavutil.so", "libswresample.so", "libswscale.so" };
+				// Ensure that the DLL is staged along with the executable
+                string[] dlls = { "libavcodec.so", "libavdevice.so", "libavfilter.so", "libavformat.so", "libavutil.so", "libpostproc.so", "libswresample.so", "libswscale.so" };
                 foreach (string dll in dlls)
                 {
                     string DllPath = Path.Combine(ModuleDirectory, "lib", "Android", abi, dll);
 
                     PublicDelayLoadDLLs.Add(dll);
                     RuntimeDependencies.Add(DllPath);
-					PublicAdditionalLibraries.Add(DllPath);
+                    PublicAdditionalLibraries.Add(DllPath);
                 }
             }
 			
